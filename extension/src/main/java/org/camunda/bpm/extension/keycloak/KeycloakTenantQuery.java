@@ -8,6 +8,7 @@ import org.camunda.bpm.engine.impl.Page;
 import org.camunda.bpm.engine.impl.TenantQueryImpl;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.interceptor.CommandExecutor;
+import org.camunda.bpm.engine.impl.persistence.entity.TenantEntity;
 
 /**
  * Since multi-tenancy is currently not yet supported for the Keycloak plugin, the query always
@@ -27,12 +28,18 @@ public class KeycloakTenantQuery extends TenantQueryImpl {
 
   @Override
   public long executeCount(CommandContext commandContext) {
-    return 0;
+    final KeycloakIdentityProviderSession identityProvider = getKeycloakIdentityProvider(commandContext);
+    return identityProvider.getReferentialService().getTenantCount();
   }
 
   @Override
   public List<Tenant> executeList(CommandContext commandContext, Page page) {
-    return Collections.emptyList();
+    final KeycloakIdentityProviderSession identityProvider = getKeycloakIdentityProvider(commandContext);
+    return identityProvider.getReferentialService().getTenants();
+  }
+
+  protected KeycloakIdentityProviderSession getKeycloakIdentityProvider(CommandContext commandContext) {
+    return (KeycloakIdentityProviderSession) commandContext.getReadOnlyIdentityProvider();
   }
 
 }

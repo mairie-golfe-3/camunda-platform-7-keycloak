@@ -18,6 +18,7 @@ import org.camunda.bpm.engine.impl.UserQueryImpl;
 import org.camunda.bpm.engine.impl.identity.IdentityProviderException;
 import org.camunda.bpm.engine.impl.identity.ReadOnlyIdentityProvider;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
+import org.camunda.bpm.engine.impl.persistence.entity.TenantEntity;
 import org.camunda.bpm.extension.keycloak.cache.QueryCache;
 import org.camunda.bpm.extension.keycloak.json.JsonException;
 import org.camunda.bpm.extension.keycloak.rest.KeycloakRestTemplate;
@@ -46,6 +47,8 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 	protected KeycloakUserService userService;
 	protected KeycloakGroupService groupService;
 
+	protected ReferentialService referentialService;
+
 	protected QueryCache<CacheableKeycloakUserQuery, List<User>> userQueryCache;
 	protected QueryCache<CacheableKeycloakGroupQuery, List<Group>> groupQueryCache;
 	protected QueryCache<CacheableKeycloakCheckPasswordCall, Boolean> checkPasswordCache;
@@ -66,6 +69,8 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 		
 		this.userService = new KeycloakUserService(keycloakConfiguration, restTemplate, keycloakContextProvider);
 		this.groupService = new  KeycloakGroupService(keycloakConfiguration, restTemplate, keycloakContextProvider);
+
+		this.referentialService = new ReferentialService();
 
 		this.userQueryCache = userQueryCache;
 		this.groupQueryCache = groupQueryCache;
@@ -399,4 +404,7 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 		return null;
 	}
 
+	public ReferentialService getReferentialService() {
+		return referentialService;
+	}
 }
