@@ -30,15 +30,15 @@ management:
 # Externalized Keycloak configuration
 keycloak:
   # SSO Authentication requests. Send by application as redirect to the browser
-  url.auth: ${KEYCLOAK_URL_AUTH:http://localhost:9000/auth}
+  url.auth: ${KEYCLOAK_URL_AUTH:http://localhost:9000}
   # SSO Token requests. Send from the application to Keycloak
-  url.token: ${KEYCLOAK_URL_TOKEN:http://localhost:9000/auth}
+  url.token: ${KEYCLOAK_URL_TOKEN:http://localhost:9000}
   # Keycloak access for the Identity Provider plugin.
-  url.plugin: ${KEYCLOAK_URL_PLUGIN:http://localhost:9000/auth}
+  url.plugin: ${KEYCLOAK_URL_PLUGIN:http://localhost:9000}
 
   # Keycloak Camunda Identity Client
   client.id: ${KEYCLOAK_CLIENT_ID:camunda-identity-service}
-  client.secret: ${KEYCLOAK_CLIENT_SECRET:GBLb9KSRxmmo81SIGH2BWu3GEtrofvWo}
+  client.secret: ${KEYCLOAK_CLIENT_SECRET:zmfvDTFmQakloCLXudhNn9PSyMaiOOPo}
 
 # Spring Boot Security OAuth2 SSO
 spring.security:

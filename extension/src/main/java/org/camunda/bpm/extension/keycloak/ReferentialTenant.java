@@ -8,6 +8,11 @@ public class ReferentialTenant implements Serializable {
 
     private String name;
 
+    public ReferentialTenant(String tenant_id, String name) {
+        this.tenant_id = tenant_id;
+        this.name = name;
+    }
+
     public String getTenant_id() {
         return tenant_id;
     }

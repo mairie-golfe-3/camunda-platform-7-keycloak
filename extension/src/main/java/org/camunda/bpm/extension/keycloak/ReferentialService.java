@@ -24,17 +24,21 @@ public class ReferentialService {
         final ParameterizedTypeReference<List<ReferentialTenant>> tenantsResponse = new ParameterizedTypeReference<List<ReferentialTenant>>() {};
 
         try {
-            final ResponseEntity<List<ReferentialTenant>> response = restTemplate.exchange(
-                    "http://localhost:8080/tenants",
+            /*final ResponseEntity<List<ReferentialTenant>> response = restTemplate.exchange(
+                    "https://ee9e1031-0d62-4ab8-8fbe-e5630ff26510.mock.pstmn.io/tenants",
                     HttpMethod.GET,
                     null,
                     tenantsResponse);
 
             if (response.getBody() == null) {
                 return Collections.emptyList();
-            }
+            }*/
 
-            for (ReferentialTenant referentialTenant : response.getBody()) {
+            List<ReferentialTenant> referentialTenants = new ArrayList<>();
+            referentialTenants.add(new ReferentialTenant("7ceb766f-62a9-4617-bb2d-871e43ac9602", "Mairie Golfe 3"));
+            referentialTenants.add(new ReferentialTenant("7ceb766f-62a9-4617-bb2d-871e43a8941", "Mairie Plateau"));
+
+            for (ReferentialTenant referentialTenant : referentialTenants) {
                 TenantEntity tenant = new TenantEntity();
                 tenant.setId(referentialTenant.getTenant_id());
                 tenant.setName(referentialTenant.getName());
