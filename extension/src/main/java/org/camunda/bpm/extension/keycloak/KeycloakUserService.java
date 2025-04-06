@@ -209,6 +209,11 @@ public class KeycloakUserService extends KeycloakServiceBase {
 		return userList;
 	}
 
+	public List<User> requestUsersByTenantId(CacheableKeycloakUserQuery query) {
+		// TODO: implement tenantId query
+		return Collections.emptyList();
+	}
+
 	/**
 	 * Post processes a Keycloak query result.
 	 * @param query the original query

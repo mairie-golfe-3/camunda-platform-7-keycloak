@@ -29,13 +29,13 @@ public class KeycloakTenantQuery extends TenantQueryImpl {
   @Override
   public long executeCount(CommandContext commandContext) {
     final KeycloakIdentityProviderSession identityProvider = getKeycloakIdentityProvider(commandContext);
-    return identityProvider.getReferentialService().getTenantCount();
+    return identityProvider.findTenantCountByQueryCriteria(this);
   }
 
   @Override
   public List<Tenant> executeList(CommandContext commandContext, Page page) {
     final KeycloakIdentityProviderSession identityProvider = getKeycloakIdentityProvider(commandContext);
-    return identityProvider.getReferentialService().getTenants();
+    return identityProvider.findTenantByQueryCriteria(this);
   }
 
   protected KeycloakIdentityProviderSession getKeycloakIdentityProvider(CommandContext commandContext) {

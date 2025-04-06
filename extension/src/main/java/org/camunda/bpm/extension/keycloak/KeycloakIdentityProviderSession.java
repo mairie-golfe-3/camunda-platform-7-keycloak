@@ -4,6 +4,7 @@ import static org.camunda.bpm.extension.keycloak.json.JsonUtil.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.List;
 
 import org.camunda.bpm.engine.BadUserRequestException;
@@ -46,11 +47,13 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 	
 	protected KeycloakUserService userService;
 	protected KeycloakGroupService groupService;
+	protected KeycloakTenantService tenantService;
 
 	protected ReferentialService referentialService;
 
 	protected QueryCache<CacheableKeycloakUserQuery, List<User>> userQueryCache;
 	protected QueryCache<CacheableKeycloakGroupQuery, List<Group>> groupQueryCache;
+	protected QueryCache<CacheableKeycloakTenantQuery, List<Tenant>> tenantQueryCache;
 	protected QueryCache<CacheableKeycloakCheckPasswordCall, Boolean> checkPasswordCache;
 
 	/**
@@ -61,7 +64,9 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 	 */
 	public KeycloakIdentityProviderSession(
 					KeycloakConfiguration keycloakConfiguration, KeycloakRestTemplate restTemplate, KeycloakContextProvider keycloakContextProvider,
-					QueryCache<CacheableKeycloakUserQuery, List<User>> userQueryCache, QueryCache<CacheableKeycloakGroupQuery, List<Group>> groupQueryCache,
+					QueryCache<CacheableKeycloakUserQuery, List<User>> userQueryCache,
+					QueryCache<CacheableKeycloakGroupQuery, List<Group>> groupQueryCache,
+					QueryCache<CacheableKeycloakTenantQuery, List<Tenant>> tenantQueryCache,
 					QueryCache<CacheableKeycloakCheckPasswordCall, Boolean> checkPasswordCache) {
 		this.keycloakConfiguration = keycloakConfiguration;
 		this.restTemplate = restTemplate;
@@ -69,11 +74,13 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 		
 		this.userService = new KeycloakUserService(keycloakConfiguration, restTemplate, keycloakContextProvider);
 		this.groupService = new  KeycloakGroupService(keycloakConfiguration, restTemplate, keycloakContextProvider);
+		this.tenantService = new KeycloakTenantService(keycloakConfiguration, restTemplate, keycloakContextProvider);
 
 		this.referentialService = new ReferentialService();
 
 		this.userQueryCache = userQueryCache;
 		this.groupQueryCache = groupQueryCache;
+		this.tenantQueryCache = tenantQueryCache;
 		this.checkPasswordCache = checkPasswordCache;
 	}
 	
@@ -168,7 +175,11 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 		if (StringUtils.hasLength(userQuery.getGroupId())) {
 			// search within the members of a single group
 			return userService.requestUsersByGroupId(userQuery);
-		} else {
+		} else if(StringUtils.hasLength(userQuery.getTenantId())) {
+			// search within the members of a single tenant
+			return userService.requestUsersByTenantId(userQuery);
+		}
+		else {
 			return userService.requestUsersWithoutGroupId(userQuery);
 		}
 	}
@@ -364,7 +375,11 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 		if (StringUtils.hasLength(groupQuery.getUserId())) {
 			// if restriction on userId is provided, we're searching within the groups of a single user
 			return groupService.requestGroupsByUserId(groupQuery);
-		} else {
+		} else if (StringUtils.hasLength(groupQuery.getTenantId())) {
+			// if restriction on tenantId is provided, we're searching within the groups of a single tenant
+			return groupService.requestGroupsByTenantId(groupQuery);
+		}
+		else {
 			return groupService.requestGroupsWithoutUserId(groupQuery);
 		}
 	}
@@ -404,7 +419,39 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 		return null;
 	}
 
-	public ReferentialService getReferentialService() {
-		return referentialService;
+	public long findTenantCountByQueryCriteria(KeycloakTenantQuery tenantQuery) {
+		return findTenantByQueryCriteria(tenantQuery).size();
 	}
+
+	public List<Tenant> findTenantByQueryCriteria(KeycloakTenantQuery tenantQuery) {
+		StringBuilder resultLogger = new StringBuilder();
+
+		if (KeycloakPluginLogger.INSTANCE.isDebugEnabled()) {
+			resultLogger.append("Keycloak tenant query results: [");
+		}
+
+		List<Tenant> allMatchingTenants = tenantQueryCache.getOrCompute(
+				CacheableKeycloakTenantQuery.of(tenantQuery), this::doFindTenantByQueryCriteria);
+
+		List<Tenant> processedTenants = tenantService.postProcessResults(tenantQuery, allMatchingTenants, resultLogger);
+
+		if (KeycloakPluginLogger.INSTANCE.isDebugEnabled()) {
+			resultLogger.append("]");
+			KeycloakPluginLogger.INSTANCE.tenantQueryResult(resultLogger.toString());
+		}
+
+		return processedTenants;
+	}
+
+	public List<Tenant> doFindTenantByQueryCriteria(CacheableKeycloakTenantQuery tenantQuery) {
+		if (StringUtils.hasLength(tenantQuery.getUserId())) {
+			// if restriction on userId is provided, we're searching within the tenants of a single user
+			return Collections.emptyList();
+			//return tenantService.requestTenantsByUserId(tenantQuery);
+		} else {
+			return Collections.emptyList();
+			//return tenantService.requestTenantsWithoutUserId(tenantQuery);
+		}
+	}
+
 }

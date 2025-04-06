@@ -194,6 +194,11 @@ public class KeycloakGroupService extends KeycloakServiceBase {
 		return groupList;
 	}
 
+	public List<Group> requestGroupsByTenantId(CacheableKeycloakGroupQuery query) {
+		// TODO: implement tenant based group queries
+		return Collections.emptyList();
+	}
+
 	/**
 	 * Post processes a Keycloak query result.
 	 * @param query the original query
