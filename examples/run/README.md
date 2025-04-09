@@ -9,14 +9,12 @@ Please be aware that you must use the provided ``*-run-x.y.z.jar`` (fat jar, pac
 
 For the records - included dependencies are:
 
-* org.apache.httpcomponents:httpclient
-	* org.apache.httpcomponents:httpcore
-	* commons-codec:commons-codec
+* org.apache.httpcomponents:client5
+	* org.apache.httpcomponents:core5
 * com.google.code.gson:gson
 * com.github.ben-manes.caffeine:caffeine
 	* org.checkerframework:checker-qual
 	* com.google.errorprone:error_prone_annotations
-
 
 The ``com.google.code.gson`` and ``com.github.ben-manes.caffeine`` dependencies are shaded into the ``keycloakjar`` package namespace. Please be aware ``httpclient`` dependencies (including transitive ones) are not(!) shaded.
 
@@ -59,9 +57,9 @@ Within the subdirectory `docker` you'll find a basic sample consisting of:
 
 Usage:
 
-1. ``docker-compose build``
-2. ``docker-compose up -d``
+1. ``docker compose build``
+2. ``docker compose up -d``
 3. Login at ``http://localhost:8080`` using ``camunda`` / ``camunda1!`` and use Cockpit / Tasklist / Admin.
-4. Keycloak is available under ``https://localhost:9001``. Login with ``keycloak`` / ``keycloak1!``.
+4. Keycloak is available under ``https://localhost:9001/auth``. Login with ``keycloak`` / ``keycloak1!``.
 
 **Beware**: This is not production ready, still using a H2 database for each of the instances, but might help you to understand the configuration basics.

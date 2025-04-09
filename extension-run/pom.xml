@@ -4,7 +4,7 @@
 	<parent>
 	  <groupId>org.camunda.bpm.extension</groupId>
 	  <artifactId>camunda-platform-7-keycloak-root</artifactId>
-	  <version>7.19.0</version>
+	  <version>7.22.0</version>
 	</parent>
 
     <artifactId>camunda-platform-7-keycloak-run</artifactId>
@@ -31,11 +31,17 @@
             <scope>provided</scope>
         </dependency>
 
+		<!-- http client 5 -->
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
 		</dependency>
-        
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${version.commons-codec}</version>
+		</dependency>
+
         <dependency>
           <groupId>com.google.code.gson</groupId>
           <artifactId>gson</artifactId>
@@ -54,10 +60,12 @@
 		    <plugin>
 		      <groupId>org.apache.maven.plugins</groupId>
 		      <artifactId>maven-assembly-plugin</artifactId>
-		      <version>2.6</version>
+		      <version>3.7.1</version>
 		      <configuration>
 			      <appendAssemblyId>false</appendAssemblyId>
-			      <descriptor>assembly-all.xml</descriptor>
+				  <descriptors>
+					  <descriptor>assembly-all.xml</descriptor>
+				  </descriptors>
 		      </configuration>
 		      <executions>
 		        <execution>
@@ -73,7 +81,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.4</version>
+				<version>3.6.0</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -91,6 +99,10 @@
                                 </excludes>
 							</artifactSet>
  							<relocations>
+								<relocation>
+									<pattern>org.apache.commons.codec</pattern>
+									<shadedPattern>keycloakjar.org.apache.commons.codec</shadedPattern>
+								</relocation>
 								<relocation>
 								    <pattern>com.google.gson</pattern>
 								    <shadedPattern>keycloakjar.com.google.gson</shadedPattern>
@@ -119,12 +131,9 @@
 				<!-- exclude source generation through maven plugin (already done by maven-shade) -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-					  <id>prevent-source-plugin</id>
-					  <phase>none</phase>
-					</execution>
-				</executions>
+				<configuration>
+					<skipSource>true</skipSource>
+				</configuration>
 			</plugin>
 			<plugin>
 				<!-- make sure javadocs are generated for camunda-platform-7-keycloak-run -->
@@ -140,7 +149,7 @@
 						<additionalDependency>
 							<groupId>junit</groupId>
 							<artifactId>junit</artifactId>
-							<version>4.12</version>
+							<version>4.13.2</version>
 						</additionalDependency>
 					</additionalDependencies>
 				</configuration>

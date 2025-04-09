@@ -9,13 +9,13 @@ import java.util.ResourceBundle;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.ssl.TrustStrategy;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
@@ -32,6 +32,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -49,6 +50,7 @@ public abstract class AbstractKeycloakIdentityProviderTest extends PluggableProc
 	private static final String KEYCLOAK_URL; // expected format "https://<myhost:myport>/auth
 	private static final String KEYCLOAK_ADMIN_USER;
 	private static final String KEYCLOAK_ADMIN_PASSWORD;
+	private static final Boolean KEYCLOAK_ENFORCE_SUBGROUPS_IN_GROUP_QUERY;
 
 	// ------------------------------------------------------------------------
 	
@@ -85,6 +87,8 @@ public abstract class AbstractKeycloakIdentityProviderTest extends PluggableProc
 		KEYCLOAK_URL = getConfigValue(defaults, "keycloak.url").replaceAll("/+$", "");
 		KEYCLOAK_ADMIN_USER = getConfigValue(defaults, "keycloak.admin.user");
 		KEYCLOAK_ADMIN_PASSWORD = getConfigValue(defaults, "keycloak.admin.password");
+		KEYCLOAK_ENFORCE_SUBGROUPS_IN_GROUP_QUERY =
+				Boolean.valueOf(getConfigValue(defaults, "keycloak.enforce.subgroups.in.group.query"));
 		
 		// setup 
 		try {
@@ -167,6 +171,7 @@ public abstract class AbstractKeycloakIdentityProviderTest extends PluggableProc
 				KeycloakIdentityProviderPlugin kcp = (KeycloakIdentityProviderPlugin) p;
 				kcp.setKeycloakAdminUrl(kcp.getKeycloakAdminUrl().replace("http://localhost:9000", KEYCLOAK_URL));
 				kcp.setKeycloakIssuerUrl(kcp.getKeycloakIssuerUrl().replace("http://localhost:9000", KEYCLOAK_URL));
+				kcp.setEnforceSubgroupsInGroupQuery(KEYCLOAK_ENFORCE_SUBGROUPS_IN_GROUP_QUERY);
 				kcp.setClientSecret(CLIENT_SECRET);
 				return kcp;
 			}
@@ -282,17 +287,17 @@ public abstract class AbstractKeycloakIdentityProviderTest extends PluggableProc
 	 * @throws Exception in case of errors
 	 */
 	private static void setupRestTemplate() throws Exception {
-		final TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
-	    final SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                .loadTrustMaterial(null, acceptingTrustStrategy)
-                .build();
-		final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+
+		PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
+		SSLContext sslContext = SSLContextBuilder.create().loadTrustMaterial(new TrustAllStrategy()).build();
+		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext,
+				NoopHostnameVerifier.INSTANCE);
+		connectionManagerBuilder.setSSLSocketFactory(sslConnectionSocketFactory);
 		final HttpClient httpClient = HttpClientBuilder.create()
-	    		.setRedirectStrategy(new LaxRedirectStrategy())
-	    		.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE))
-	    		.build();
-		factory.setHttpClient(httpClient);
-		restTemplate.setRequestFactory(factory);		
+				.setConnectionManager(connectionManagerBuilder.build())
+				.build();
+		final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+		restTemplate.setRequestFactory(factory);
 
 		for (int i = 0; i < restTemplate.getMessageConverters().size(); i++) {
 			if (restTemplate.getMessageConverters().get(i) instanceof StringHttpMessageConverter) {
@@ -310,7 +315,7 @@ public abstract class AbstractKeycloakIdentityProviderTest extends PluggableProc
 	protected static HttpHeaders authenticateKeycloakAdmin() throws JSONException {
 		// Authenticate Admin
 		HttpHeaders headers = new HttpHeaders();
-	    headers.add(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.toString());
+	    headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
 	    HttpEntity<String> request = new HttpEntity<>(
 	    		"client_id=admin-cli"
 	    		+ "&username=" + KEYCLOAK_ADMIN_USER + "&password=" + KEYCLOAK_ADMIN_PASSWORD
@@ -324,7 +329,7 @@ public abstract class AbstractKeycloakIdentityProviderTest extends PluggableProc
 
 		// Create REST request header
 		headers = new HttpHeaders();
-	    headers.add(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString() + ";charset="+StandardCharsets.UTF_8.name());
+	    headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + ";charset="+StandardCharsets.UTF_8.name());
 		headers.add(HttpHeaders.AUTHORIZATION, tokenType + " " + accessToken);
 
 		return headers;
@@ -528,7 +533,7 @@ public abstract class AbstractKeycloakIdentityProviderTest extends PluggableProc
 	 * Deletes a group.
 	 * @param headers HttpHeaders including the Authorization header / acces token
 	 * @param realm the realm name
-	 * @param userId the user ID
+	 * @param groupId the group ID
 	 */
 	static void deleteGroup(HttpHeaders headers, String realm, String groupId) {
 		ResponseEntity<String> response = restTemplate.exchange(KEYCLOAK_URL + "/admin/realms/" + realm + "/groups/" + groupId, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);

@@ -37,6 +37,16 @@ public class KeycloakConfiguration {
 	 */
 	protected boolean useGroupPathAsCamundaGroupId = false;
 
+	/**
+	 * Starting with Keycloak version 23.x the group query without any other search parameters does not automatically
+	 * return subgroups within the result. Generally this has positive effects on performance and in case you do not
+	 * have subgroups you must not take care. On the other hand, if you do use subgroups you'll miss information and get
+	 * inconsistent results.
+	 * <p/>
+	 * Set this flag to 'true' in case you use subgroups together with Keycloak 23 or higher.
+	 */
+	protected boolean enforceSubgroupsInGroupQuery = false;
+
 	/** The name of the administrator group.
 	 *
 	 * If this name is set to a non-null and non-empty value,
@@ -56,6 +66,12 @@ public class KeycloakConfiguration {
 
 	/** Disables SSL certificate validation. Useful for testing. */
 	protected boolean disableSSLCertificateValidation = false;
+
+	/** The file path to a truststore file. */
+	protected String truststore;
+
+	/** The password for the truststore. */
+	protected String truststorePassword;
 
 	/** Maximum number of HTTP connections of the Keycloak specific connection pool. */
 	protected int maxHttpConnections = 50;
@@ -208,6 +224,20 @@ public class KeycloakConfiguration {
 	}
 
 	/**
+	 * @return the enforceSubgroupsInGroupQuery
+	 */
+	public boolean isEnforceSubgroupsInGroupQuery() {
+		return enforceSubgroupsInGroupQuery;
+	}
+
+	/**
+	 * @param enforceSubgroupsInGroupQuery the enforceSubgroupsInGroupQuery to set
+	 */
+	public void setEnforceSubgroupsInGroupQuery(boolean enforceSubgroupsInGroupQuery) {
+		this.enforceSubgroupsInGroupQuery = enforceSubgroupsInGroupQuery;
+	}
+
+	/**
 	 * @return the administratorGroupName
 	 */
 	public String getAdministratorGroupName() {
@@ -261,6 +291,34 @@ public class KeycloakConfiguration {
 	 */
 	public void setDisableSSLCertificateValidation(boolean disableSSLCertificateValidation) {
 		this.disableSSLCertificateValidation = disableSSLCertificateValidation;
+	}
+
+	/**
+	 * @return the truststore
+	 */
+	public String getTruststore() {
+		return truststore;
+	}
+
+	/**
+	 * @param truststore the truststore to set
+	 */
+	public void setTruststore(String truststore) {
+		this.truststore = truststore;
+	}
+
+	/**
+	 * @return the truststorePassword
+	 */
+	public String getTruststorePassword() {
+		return truststorePassword;
+	}
+
+	/**
+	 * @param truststorePassword the truststorePassword to set
+	 */
+	public void setTruststorePassword(String truststorePassword) {
+		this.truststorePassword = truststorePassword;
 	}
 
 	/**

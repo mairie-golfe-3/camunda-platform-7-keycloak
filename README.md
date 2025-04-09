@@ -19,10 +19,25 @@ This plugin provides the basis for using Keycloak as Identity Management solutio
 **Beware: in case you want to use Keycloak's advanced login capabilities for social connections you must configure SSO as well.**
 Password grant exchanges are only supported for Keycloak's internally managed users and users of an LDAP / Keberos User federation. Hence without SSO you will only be able to login with users managed by such connections.
 
-Current version: `7.19.0`<br >
-Latest tests with: Keycloak `21.1.1`, `19.0.3-legacy`, Camunda `7.19.0`, `7.19.0-ee`
+Current version: `7.21.6`<br >
+Latest tests with: Keycloak `25.0.4`, `19.0.3-legacy`, Camunda `7.21.0`, `7.21.0-ee`
 
 #### Features
+Changes in version `7.21.6`
+
+* Upgrade to Camunda Platform 7.21.0
+* New configuration flag `enforceSubgroupsInGroupQuery` for enforcing subgroups in query results when using Keycloak >= `23.0.0`
+* Use exact match when querying for a single user by ID and thus prevent problems when a huge number of similar usernames exist
+* Added truststore support
+
+Changes in version `7.20.1`
+
+With version 7.20.0 Camunda Platform 7 switched to Spring Boot 3.1, JakartaEE 10 and a JDK 17 baseline. The Keycloak Identity Provider Plugin has been updated to support the new baseline versions of it's major dependencies.
+
+* Upgrade to Camunda Platform 7.20.0
+* Upgrade to Apache HttpComponents HttpClient 5
+* Upgrade to Spring Boot 3.1.x
+* Updated samples to Spring Security 6.1
 
 Changes in version `7.19.0`
 
@@ -110,6 +125,8 @@ Known limitations:
     ![IdentityServiceSettings](doc/identity-service_settings.png "Identity Service Settings")
    Please be aware, that beginning with Keycloak 18, you do not only have to configure a valid redirect URL, but
    a valid post logout redirect URL as well. To keep things easy values can be the same.
+3. Since Keycloak 20, user queries require an 'openid' scope for OIDC clients. To enable this, create an 'openid' scope under client scopes and add add this the `camunda-identity-service` client.
+![openid-client-scope.png](doc/openid-clientscope.png "Client scopes") 
 4. In order to use refresh tokens set the "Use Refresh Tokens For Client Credentials Grant" option within the "OpenID Connect Compatibility Modes" section (available in newer Keycloak versions):
 
     ![IdentityServiceOptions](doc/identity-service_options.png "Identity Service Options")
@@ -127,7 +144,7 @@ Maven Dependencies:
 <dependency>
     <groupId>org.camunda.bpm.extension</groupId>
     <artifactId>camunda-platform-7-keycloak</artifactId>
-    <version>7.18.0</version>
+    <version>7.21.6</version>
 </dependency>
 ```
 
@@ -178,24 +195,27 @@ The `admin-user` part must be deleted in order to work properly. The recommended
     
 A list of configuration options can be found below:
 
-| *Property* | *Description* |
-| --- | --- |
-| `keycloakIssuerUrl` | The basic issuer URL of your Keycloak server including the realm.<br />Sample for master realm: `https://<your-keycloak-server>/auth/realms/master` |
-| `keycloakAdminUrl` | The admin URL of the Keycloak server REST API including the realm.<br />Sample for master realm: `https://<your-keycloak-server>/auth/admin/realms/master` |
-| `clientId` | The Client ID of your application. |
-| `clientSecret` | The Client Secret of your application. |
-| `useEmailAsCamundaUserId` | Whether to use the Keycloak email attribute as Camunda's user ID. Default is `false`.<br /><br />This is option is a fallback in case you don't use SSO and want to login using Camunda's web interface with your mail address and not the cryptic internal Keycloak ID. Keep in mind that you will only be able to login without SSO with Keycloak's internally managed users and users managed by the LDAP / Keberos User federation.|
-| `useUsernameAsCamundaUserId` | Whether to use the Keycloak username attribute as Camunda's user ID. Default is `false`. In the default case the plugin will use the internal Keycloak ID as Camunda's user ID.|
-| `useGroupPathAsCamundaGroupId` | Whether to use the Keycloak unique group path as Camunda's group ID. Default is `false`. In the default case the plugin will use the internal Keycloak ID as Camunda's group ID.<br />This flag is particularly useful in case you want to have human readable group IDs and recommended when using groups in Camunda's authorization management.<br />*Since 1.1.0* |
-| `administratorGroupName` | The name of the administrator group. If this name is set and engine authorization is enabled, the plugin will create group-level Administrator authorizations on all built-in resources. |
-| `administratorUserId` | The ID of the administrator user. If this ID is set and engine authorization is enabled, the plugin will create user-level Administrator authorizations on all built-in resources. |
-| `authorizationCheckEnabled` |  If this property is set to true, then authorization checks are performed when querying for users or groups. Otherwise authorization checks are not performed when querying for users or groups. Default: `true`.<br />*Note*: If you have a huge amount of Keycloak users or groups we advise to set this property to false to improve the performance of the user and group query. |
-| `maxResultSize`| Maximum result size of queries against the Keycloak API. Default: `250`.<br /><br />*Beware*: Setting the parameter to a too low value can lead to unexpected effects. Keep in mind that parts of the filtering takes place on the client side / within the plugin itself. Setting the parameter to a too high value can lead to performance and memory issues.<br />*Since 1.5.0* |
-| `maxHttpConnections` | Maximum number HTTP connections for the Keycloak connection pool. Default: `50`|
-| `disableSSLCertificateValidation` | Whether to disable SSL certificate validation. Default: `false`. Useful in test environments. |
-| `proxyUri` | Optional URI of a proxy to use. Default: `null`, example: `http://proxy:81`.<br />*Since 2.0.0* |
-| `proxyUser` | Optional username for proxy authentication. Default: `null`.<br />*Since 2.0.0* |
-| `proxyPassword` | Optional password for proxy authentication. Default: `null`.<br />*Since 2.0.0* |
+| *Property*                        | *Description*                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `keycloakIssuerUrl`               | The basic issuer URL of your Keycloak server including the realm.<br />Sample for master realm: `https://<your-keycloak-server>/auth/realms/master`                                                                                                                                                                                                                                                                                     |
+| `keycloakAdminUrl`                | The admin URL of the Keycloak server REST API including the realm.<br />Sample for master realm: `https://<your-keycloak-server>/auth/admin/realms/master`                                                                                                                                                                                                                                                                              |
+| `clientId`                        | The Client ID of your application.                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `clientSecret`                    | The Client Secret of your application.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `useEmailAsCamundaUserId`         | Whether to use the Keycloak email attribute as Camunda's user ID. Default is `false`.<br /><br />This is option is a fallback in case you don't use SSO and want to login using Camunda's web interface with your mail address and not the cryptic internal Keycloak ID. Keep in mind that you will only be able to login without SSO with Keycloak's internally managed users and users managed by the LDAP / Keberos User federation. |
+| `useUsernameAsCamundaUserId`      | Whether to use the Keycloak username attribute as Camunda's user ID. Default is `false`. In the default case the plugin will use the internal Keycloak ID as Camunda's user ID.                                                                                                                                                                                                                                                         |
+| `useGroupPathAsCamundaGroupId`    | Whether to use the Keycloak unique group path as Camunda's group ID. Default is `false`. In the default case the plugin will use the internal Keycloak ID as Camunda's group ID.<br />This flag is particularly useful in case you want to have human readable group IDs and recommended when using groups in Camunda's authorization management.<br />*Since 1.1.0*                                                                    |
+| `enforceSubgroupsInGroupQuery`    | Starting with Keycloak version 23 the group query without any other search parameters does not automatically return subgroups within the result. Set this flag to `true` in case you use subgroups together with Keycloak 23 or higher. Otherwise leave it to the default `false` and benefit from better performance.<br />*Since 7.21.1*                                                                                              |
+| `administratorGroupName`          | The name of the administrator group. If this name is set and engine authorization is enabled, the plugin will create group-level Administrator authorizations on all built-in resources.                                                                                                                                                                                                                                                |
+| `administratorUserId`             | The ID of the administrator user. If this ID is set and engine authorization is enabled, the plugin will create user-level Administrator authorizations on all built-in resources.                                                                                                                                                                                                                                                      |
+| `authorizationCheckEnabled`       | If this property is set to true, then authorization checks are performed when querying for users or groups. Otherwise authorization checks are not performed when querying for users or groups. Default: `true`.<br />*Note*: If you have a huge amount of Keycloak users or groups we advise to set this property to false to improve the performance of the user and group query.                                                     |
+| `maxResultSize`                   | Maximum result size of queries against the Keycloak API. Default: `250`.<br /><br />*Beware*: Setting the parameter to a too low value can lead to unexpected effects. Keep in mind that parts of the filtering takes place on the client side / within the plugin itself. Setting the parameter to a too high value can lead to performance and memory issues.<br />*Since 1.5.0*                                                      |
+| `maxHttpConnections`              | Maximum number HTTP connections for the Keycloak connection pool. Default: `50`                                                                                                                                                                                                                                                                                                                                                         |
+| `disableSSLCertificateValidation` | Whether to disable SSL certificate validation. Default: `false`. Useful in test environments.                                                                                                                                                                                                                                                                                                                                           |
+| `truststore`                      | Optional file path to a truststore file. Default: `null`. In the default case the default Java truststore will be used.<br />*Since 7.21.3*                                                                                                                                                                                                                                                                                             |
+| `truststorePassword`              | Optional password for the truststore. Default: `null`.<br />*Since 7.21.3*                                                                                                                                                                                                                                                                                                                                                              |
+| `proxyUri`                        | Optional URI of a proxy to use. Default: `null`, example: `http://proxy:81`.<br />*Since 2.0.0*                                                                                                                                                                                                                                                                                                                                         |
+| `proxyUser`                       | Optional username for proxy authentication. Default: `null`.<br />*Since 2.0.0*                                                                                                                                                                                                                                                                                                                                                         |
+| `proxyPassword`                   | Optional password for proxy authentication. Default: `null`.<br />*Since 2.0.0*                                                                                                                                                                                                                                                                                                                                                         |
 <!--
 | `charset` | Charset to use for REST communication with Keycloak Server. Default: `UTF-8`.<br />*Since 1.1.0* |
 -->
@@ -290,28 +310,30 @@ Last but not least add a security configuration and enable OAuth2 SSO:
 
 ```java
 /**
-* Camunda Web application SSO configuration for usage with KeycloakIdentityProviderPlugin.
-*/
+ * Camunda Web application SSO configuration for usage with KeycloakIdentityProviderPlugin.
+ */
 @ConditionalOnMissingClass("org.springframework.test.context.junit.jupiter.SpringExtension")
+@EnableWebSecurity
 @Configuration
-@Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
-public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebAppSecurityConfig {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-        .csrf().ignoringAntMatchers("/api/**")
-        .and()
-        .requestMatchers().antMatchers("/**").and()
-          .authorizeRequests(authorizeRequests ->
-            authorizeRequests
-            .antMatchers("/app/**", "/api/**", "/lib/**")
-            .authenticated()
-            .anyRequest()
-            .permitAll()
-          )
-        .oauth2Login()
-        ;
+    @Bean
+    @Order(2)
+    public SecurityFilterChain httpSecurity(HttpSecurity http) throws Exception {
+        return http
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(antMatcher("/api/**"), antMatcher("/engine-rest/**")))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                antMatcher("/assets/**"),
+                                antMatcher("/app/**"),
+                                antMatcher("/api/**"),
+                                antMatcher("/lib/**"))
+                        .authenticated()
+                        .anyRequest()
+                        .permitAll())
+                .oauth2Login(withDefaults())
+                .build();
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -321,9 +343,19 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
         FilterRegistrationBean filterRegistration = new FilterRegistrationBean();
         filterRegistration.setFilter(new ContainerBasedAuthenticationFilter());
         filterRegistration.setInitParameters(Collections.singletonMap("authentication-provider", "org.camunda.bpm.extension.keycloak.showcase.sso.KeycloakAuthenticationProvider"));
-        filterRegistration.setOrder(101); // make sure the filter is registered after the Spring Security Filter Chain
+        filterRegistration.setOrder(201); // make sure the filter is registered after the Spring Security Filter Chain
         filterRegistration.addUrlPatterns("/app/*");
         return filterRegistration;
+    }
+
+    // The ForwardedHeaderFilter is required to correctly assemble the redirect URL for OAUth2 login. 
+    // Without the filter, Spring generates an HTTP URL even though the container route is accessed through HTTPS.
+    @Bean
+    public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
+        FilterRegistrationBean<ForwardedHeaderFilter> filterRegistrationBean = new FilterRegistrationBean<>();
+        filterRegistrationBean.setFilter(new ForwardedHeaderFilter());
+        filterRegistrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return filterRegistrationBean;
     }
 
     @Bean
@@ -401,8 +433,8 @@ version: "3.9"
 
 services:
   jboss.keycloak:
-    image: quay.io/keycloak/keycloak:21.1.1
-    restart: always
+    image: quay.io/keycloak/keycloak:24.0.3
+    restart: unless-stopped
     environment:
       TZ: Europe/Berlin
       DB_VENDOR: h2
@@ -414,7 +446,6 @@ services:
       - "8080:8080"
     command:
       - start-dev
-      - --features admin-fine-grained-authz
 ```
 
 For details see documentation on [Running Keycloak in a container](https://www.keycloak.org/server/containers "Running Keycloak in a container").
@@ -423,14 +454,15 @@ For details see documentation on [Running Keycloak in a container](https://www.k
 
 Running unit tests from Maven requires configuring the details of a running Keycloak server. This can be achieved by setting the following environment variables:
 
-| *Environment Variable* | *Description* |
-| --- | --- |
-| `KEYCLOAK_URL` | Keycloak server URL.<br />Default value: `http://localhost:8080/auth` |
-| `KEYCLOAK_ADMIN_USER` | The admin user of the Keycloak server.<br />Default value: `keycloak` |
-| `KEYCLOAK_ADMIN_PASSWORD` | The admin password of the Keycloak server.<br />Default value: `keycloak1!` |
+| *Environment Variable*                      | *Description*                                                                                                        |
+|---------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| `KEYCLOAK_URL`                              | Keycloak server URL.<br />Default value: `http://localhost:8080/auth`                                                |
+| `KEYCLOAK_ADMIN_USER`                       | The admin user of the Keycloak server.<br />Default value: `keycloak`                                                |
+| `KEYCLOAK_ADMIN_PASSWORD`                   | The admin password of the Keycloak server.<br />Default value: `keycloak1!`                                          |
+| `KEYCLOAK_ENFORCE_SUBGROUPS_IN_GROUP_QUERY` | Wether to enforce subgroup results in group queries when testing with Keycloak >= `23.0.0`<br />Default value: `true`|
 
 In case you choose Keycloak in the new Quarkus distribution, please be aware that `/auth` has been removed from the default context path.
-Hence, it is required to change the `KEYCLOAK_URL` for the tests. Tests also run successfully against the Quarkus
+Hence, it is required to change the `KEYCLOAK_URL` for the tests. Tests run successfully against the Quarkus
 distribution, in case you start Keycloak in Development mode.
 
 ------------------------------------------------------------
@@ -457,4 +489,3 @@ Brought to you by:
 ## License 
 
 License: [Apache License 2.0](https://opensource.org/licenses/Apache-2.0)
-
