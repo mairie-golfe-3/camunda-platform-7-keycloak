@@ -210,8 +210,48 @@ public class KeycloakUserService extends KeycloakServiceBase {
 	}
 
 	public List<User> requestUsersByTenantId(CacheableKeycloakUserQuery query) {
-		// TODO: implement tenantId query
-		return Collections.emptyList();
+		List<User> userList = new ArrayList<>();
+
+		try {
+			// get members of this group
+			ResponseEntity<String> response = null;
+
+			if (StringUtils.hasLength(query.getId())) {
+				response = requestUserById(query.getId());
+			} else if (query.getIds() != null && query.getIds().length == 1) {
+				response = requestUserById(query.getIds()[0]);
+			} else {
+				// Create user search filter
+				String tenant = query.getTenantId();
+
+				response = restTemplate.exchange(keycloakConfiguration.referentialManagerUrl + "/users?tenant=" + tenant, HttpMethod.GET, String.class);
+			}
+			if (!response.getStatusCode().equals(HttpStatus.OK)) {
+				throw new IdentityProviderException(
+						"Unable to read users from " + keycloakConfiguration.getKeycloakAdminUrl()
+								+ ": HTTP status code " + response.getStatusCodeValue());
+			}
+
+			JsonArray searchResult = parseAsJsonArray(response.getBody());
+			for (int i = 0; i < searchResult.size(); i++) {
+				JsonObject keycloakUser = getJsonObjectAtIndex(searchResult, i);
+				if (keycloakConfiguration.isUseEmailAsCamundaUserId() &&
+						!StringUtils.hasLength(getJsonString(keycloakUser, "email"))) {
+					continue;
+				}
+				if (keycloakConfiguration.isUseUsernameAsCamundaUserId() &&
+						!StringUtils.hasLength(getJsonString(keycloakUser, "username"))) {
+					continue;
+				}
+
+				userList.add(transformUser(keycloakUser));
+			}
+
+		} catch (RestClientException | JsonException rce) {
+			throw new IdentityProviderException("Unable to query users", rce);
+		}
+
+		return userList;
 	}
 
 	/**
@@ -351,14 +391,28 @@ public class KeycloakUserService extends KeycloakServiceBase {
 		} else {
 			user.setId(getJsonString(result, "id"));
 		}
-		user.setFirstName(getJsonString(result, "firstName"));
-		user.setLastName(getJsonString(result, "lastName"));
+
+		String firstName = getJsonString(result, "firstName");
+		if (firstName == null || firstName.isEmpty()) {
+			firstName = getJsonString(result, "first_name");
+		}
+
+		String lastName = getJsonString(result, "lastName");
+		if (lastName == null || lastName.isEmpty()) {
+			lastName = getJsonString(result, "last_name");
+		}
+
+		user.setFirstName(firstName);
+		user.setLastName(lastName);
 		if (!StringUtils.hasLength(user.getFirstName()) && !StringUtils.hasLength(user.getLastName())) {
 			user.setFirstName(getJsonString(result, "username"));
 		}
-		user.setEmail(getJsonString(result, "email"));
+		String email = getJsonString(result, "email");
+		user.setEmail(email);
 		return user;
 	}
+
+
 
 	/**
 	 * Helper for client side user ordering.

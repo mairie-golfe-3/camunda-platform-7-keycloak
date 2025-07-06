@@ -195,8 +195,45 @@ public class KeycloakGroupService extends KeycloakServiceBase {
 	}
 
 	public List<Group> requestGroupsByTenantId(CacheableKeycloakGroupQuery query) {
-		// TODO: implement tenant based group queries
-		return Collections.emptyList();
+		List<Group> groupList = new ArrayList<>();
+
+		try {
+			ResponseEntity<String> response;
+
+			if (StringUtils.hasLength(query.getId()) || !StringUtils.hasLength(query.getTenantId())) {
+				response = requestGroupById(query.getId());
+			} else if (query.getIds() != null && query.getIds().length == 1) {
+				response = requestGroupById(query.getIds()[0]);
+			} else {
+				String tenant = query.getTenantId();
+
+				response = restTemplate.exchange(
+						keycloakConfiguration.referentialManagerUrl + "/groups?tenant=" + tenant, HttpMethod.GET, String.class);
+				if (!response.getStatusCode().equals(HttpStatus.OK)) {
+					throw new IdentityProviderException(
+							"Unable to read groups with tenant " + tenant + "from " + keycloakConfiguration.getKeycloakAdminUrl()
+									+ ": HTTP status code " + response.getStatusCodeValue());
+				}
+			}
+
+			JsonArray searchResult;
+			if (StringUtils.hasLength(query.getId())) {
+				searchResult = parseAsJsonArray(response.getBody());
+			} else {
+				// for non ID queries search in subgroups as well
+				searchResult = flattenSubGroups(parseAsJsonArray(response.getBody()), new JsonArray());
+			}
+
+			for (int i = 0; i < searchResult.size(); i++) {
+				groupList.add(transformGroup(getJsonObjectAtIndex(searchResult, i)));
+			}
+
+		} catch (RestClientException | JsonException rce) {
+			throw new IdentityProviderException("Unable to query groups with tenant " + query.getTenantId(), rce);
+		}
+
+		return groupList;
+
 	}
 
 	/**

@@ -40,15 +40,15 @@ public class KeycloakTenantService extends KeycloakServiceBase {
         List<Tenant> tenants = new ArrayList<>();
 
         try {
-            String keycloadID;
+            String keycloakID;
             try {
-                keycloadID = getKeycloakUserID(userId);
+                keycloakID = getKeycloakUserID(userId);
             } catch (KeycloakUserNotFoundException e) {
                 return Collections.emptyList();
             }
 
             ResponseEntity<String> response = restTemplate.exchange(
-                    "url",
+                    keycloakConfiguration.referentialManagerUrl + "/users/" + keycloakID + "/tenants",
                     HttpMethod.GET,
                     String.class
             );
@@ -79,7 +79,7 @@ public class KeycloakTenantService extends KeycloakServiceBase {
 
         try {
             ResponseEntity<String> response = restTemplate.exchange(
-                    "url",
+                    keycloakConfiguration.referentialManagerUrl + "/tenants",
                     HttpMethod.GET,
                     String.class
             );
@@ -107,7 +107,7 @@ public class KeycloakTenantService extends KeycloakServiceBase {
 
     private Tenant transformTenant(JsonObject jsonObject) throws JsonException {
         TenantEntity tenant = new TenantEntity();
-        tenant.setId(getJsonString(jsonObject, "id"));
+        tenant.setId(getJsonString(jsonObject, "tenant_id"));
         tenant.setName(getJsonString(jsonObject, "name"));
         return tenant;
     }

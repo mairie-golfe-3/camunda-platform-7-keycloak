@@ -446,11 +446,9 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 	public List<Tenant> doFindTenantByQueryCriteria(CacheableKeycloakTenantQuery tenantQuery) {
 		if (StringUtils.hasLength(tenantQuery.getUserId())) {
 			// if restriction on userId is provided, we're searching within the tenants of a single user
-			return Collections.emptyList();
-			//return tenantService.requestTenantsByUserId(tenantQuery);
+			return tenantService.requestTenantsByUserId(tenantQuery);
 		} else {
-			return Collections.emptyList();
-			//return tenantService.requestTenantsWithoutUserId(tenantQuery);
+			return tenantService.requestTenantsWithoutUserId(tenantQuery);
 		}
 	}
 

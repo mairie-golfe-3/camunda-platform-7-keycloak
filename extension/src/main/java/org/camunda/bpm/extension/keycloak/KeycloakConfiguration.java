@@ -120,7 +120,12 @@ public class KeycloakConfiguration {
 
 	/** Time after which a cached login entry is evicted. default: 15 minutes */
 	private int loginCacheExpirationTimeoutMin = 15;
-	
+
+	/**
+	 * Refential manager for tenants management.
+	 */
+	protected String referentialManagerUrl;
+
 	//-------------------------------------------------------------------------
 	// Getters / Setters
 	//-------------------------------------------------------------------------
@@ -469,6 +474,14 @@ public class KeycloakConfiguration {
 	 */
 	public void setLoginCacheExpirationTimeoutMin(int loginCacheExpirationTimeoutMin) {
 		this.loginCacheExpirationTimeoutMin = loginCacheExpirationTimeoutMin;
+	}
+
+	public String getReferentialManagerUrl() {
+		return referentialManagerUrl;
+	}
+
+	public void setReferentialManagerUrl(String referentialManagerUrl) {
+		this.referentialManagerUrl = referentialManagerUrl;
 	}
 
 	//-------------------------------------------------------------------------
