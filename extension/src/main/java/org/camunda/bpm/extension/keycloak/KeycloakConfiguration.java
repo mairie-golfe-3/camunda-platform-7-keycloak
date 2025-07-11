@@ -122,7 +122,7 @@ public class KeycloakConfiguration {
 	private int loginCacheExpirationTimeoutMin = 15;
 
 	/**
-	 * Refential manager for tenants management.
+	 * Referential manager for tenants management.
 	 */
 	protected String referentialManagerUrl;
 
