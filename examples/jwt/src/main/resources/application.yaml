@@ -43,7 +43,7 @@ keycloak:
   # Keycloak Camunda Identity Service
   plugin:
     client.id: camunda-identity-service
-    client.secret: FOZQuxYwfuvb9R708askvn9XkZMfwlKp
+    client.secret: zmfvDTFmQakloCLXudhNn9PSyMaiOOPo
 
 # Spring Boot Security OAuth2 SSO
 spring.security:
@@ -69,5 +69,6 @@ plugin.identity.keycloak:
   useGroupPathAsCamundaGroupId: true
   administratorGroupName: camunda-admin
   disableSSLCertificateValidation: true
+  referentialManagerUrl: ${REFERENTIAL_MANAGER_URL:http://localhost:8080/api/v1/referential-manager}
 
 logging.level.org.springframework.security: TRACE

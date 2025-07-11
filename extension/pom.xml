@@ -2,9 +2,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-	  <groupId>org.camunda.bpm.extension</groupId>
+	  <!--<groupId>org.camunda.bpm.extension</groupId>-->
+		<groupId>com.openmairie.extension</groupId>
 	  <artifactId>camunda-platform-7-keycloak-root</artifactId>
-		<version>7.22.0</version>
+		<version>v7.22.0</version>
 	</parent>
 
     <artifactId>camunda-platform-7-keycloak</artifactId>
@@ -93,6 +94,12 @@
 					<failIfNoTests>false</failIfNoTests>
 					<trimStackTrace>false</trimStackTrace>
 					<redirectTestOutputToFile>true</redirectTestOutputToFile>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>false</skip>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -31,8 +31,8 @@ public class KeycloakJwtAuthenticationProvider extends ContainerBasedAuthenticat
 
         // Authentication successful
         AuthenticationResult authenticationResult = new AuthenticationResult(userId, true);
-        authenticationResult.setGroups(((Jwt)authentication.getPrincipal()).getClaimAsStringList("groups")
-                .stream().map(g -> g.startsWith("/") ? g.substring(1) : g).collect(Collectors.toList()));
+        //authenticationResult.setGroups(((Jwt)authentication.getPrincipal()).getClaimAsStringList("groups")
+                //.stream().map(g -> g.startsWith("/") ? g.substring(1) : g).collect(Collectors.toList()));
 
         return authenticationResult;
     }
