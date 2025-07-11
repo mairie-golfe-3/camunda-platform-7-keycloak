@@ -49,8 +49,6 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 	protected KeycloakGroupService groupService;
 	protected KeycloakTenantService tenantService;
 
-	protected ReferentialService referentialService;
-
 	protected QueryCache<CacheableKeycloakUserQuery, List<User>> userQueryCache;
 	protected QueryCache<CacheableKeycloakGroupQuery, List<Group>> groupQueryCache;
 	protected QueryCache<CacheableKeycloakTenantQuery, List<Tenant>> tenantQueryCache;
@@ -75,8 +73,6 @@ public class KeycloakIdentityProviderSession implements ReadOnlyIdentityProvider
 		this.userService = new KeycloakUserService(keycloakConfiguration, restTemplate, keycloakContextProvider);
 		this.groupService = new  KeycloakGroupService(keycloakConfiguration, restTemplate, keycloakContextProvider);
 		this.tenantService = new KeycloakTenantService(keycloakConfiguration, restTemplate, keycloakContextProvider);
-
-		this.referentialService = new ReferentialService();
 
 		this.userQueryCache = userQueryCache;
 		this.groupQueryCache = groupQueryCache;
