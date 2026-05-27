@@ -8,6 +8,7 @@ import org.camunda.bpm.engine.impl.Page;
 import org.camunda.bpm.engine.impl.UserQueryImpl;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.interceptor.CommandExecutor;
+import org.camunda.bpm.engine.impl.util.EnsureUtil;
 
 /**
  * Keycloak specific user query implementation.
@@ -46,7 +47,9 @@ public class KeycloakUserQuery extends UserQueryImpl {
 
 	@Override
 	public UserQuery memberOfTenant(String tenantId) {
-		throw new UnsupportedOperationException("The Keycloak identity provider does currently not support tenant queries.");
+		EnsureUtil.ensureNotNull("Provided tenantId", tenantId);
+		this.tenantId = tenantId;
+		return this;
 	}
 
 	@Override

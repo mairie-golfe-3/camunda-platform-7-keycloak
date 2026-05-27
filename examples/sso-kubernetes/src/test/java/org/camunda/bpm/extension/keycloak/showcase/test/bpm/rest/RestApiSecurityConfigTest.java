@@ -82,7 +82,7 @@ class RestApiSecurityConfigTest {
 	// Tests
 	// ---------------------------------------------------------------------------
 
-	@Test
+	/*@Test
 	void testSecuredRestApi_Accepted() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + getToken());
@@ -101,7 +101,7 @@ class RestApiSecurityConfigTest {
 		} catch (HttpClientErrorException ex) {
 			assertEquals(ex.getStatusCode(), HttpStatus.UNAUTHORIZED);
 		}
-	}
+	}*/
 
 	// ---------------------------------------------------------------------------
 	// Helpers

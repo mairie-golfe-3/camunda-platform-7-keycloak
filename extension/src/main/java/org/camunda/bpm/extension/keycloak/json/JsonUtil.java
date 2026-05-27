@@ -61,7 +61,10 @@ public class JsonUtil {
 	public static String getJsonString(JsonObject jsonObject, String memberName) throws JsonException {
 		try {
 			JsonElement element = jsonObject.get(memberName);
-			return element == null ? null : element.getAsString();
+			if (element == null || element.isJsonNull()) {
+				return null;
+			}
+			return element.getAsString();
 		} catch (ClassCastException | IllegalStateException ex) {
 			throw new JsonException("Unable to get '" + memberName + "' from JsonObject " + jsonObject.toString(), ex);
 		}

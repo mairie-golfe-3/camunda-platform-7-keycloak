@@ -24,6 +24,11 @@
             <!-- 			<artifactId>camunda-bpm-spring-boot-starter-webapp-ee</artifactId> -->
         </dependency>
 
+        <dependency>
+            <groupId>org.camunda.bpm.springboot</groupId>
+            <artifactId>camunda-bpm-spring-boot-starter-rest</artifactId>
+        </dependency>
+
         <!-- Spring Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -69,4 +69,9 @@ public class KeycloakPluginLogger extends BaseLogger {
 		// log sensitive data only on FINE
 		logDebug("051", summary);
 	}
+
+	public void tenantQueryResult(String summary) {
+		// log sensitive data only on FINE
+		logDebug("052", summary);
+	}
 }

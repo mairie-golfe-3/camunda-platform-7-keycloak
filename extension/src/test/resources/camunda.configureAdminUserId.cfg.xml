@@ -42,6 +42,8 @@
     <property name="useEmailAsCamundaUserId" value="false" />
 
     <property name="administratorUserId" value="%administratorUserId%" />
+
+    <property name="referentialManagerUrl" value="http://localhost:8080/api/v1/referential-manager" />
   </bean>
 
 </beans>

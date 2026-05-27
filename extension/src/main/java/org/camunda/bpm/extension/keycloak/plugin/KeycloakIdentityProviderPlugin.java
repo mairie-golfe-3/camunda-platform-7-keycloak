@@ -163,6 +163,10 @@ public class KeycloakIdentityProviderPlugin extends KeycloakConfiguration implem
 			LOG.missingConfigurationParameter("charset");
 			missing.add("charset");
 		}
+		if (StringUtils.isEmpty(referentialManagerUrl)) {
+			LOG.missingConfigurationParameter("referentialManagerUrl");
+			missing.add("referentialManagerUrl");
+		}
 		if (missing.size() > 0) {
 			LOG.activationError(getClass().getSimpleName(), processEngineConfiguration.getProcessEngineName(),
 					"missing mandatory configuration parameters " + missing.toString());
