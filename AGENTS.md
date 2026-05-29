@@ -61,8 +61,17 @@ All tests under `extension/src/test/` are **integration tests** — they hit a r
 - Keycloak Quarkus distribution (>= 17): no `/auth` context path — adjust `KEYCLOAK_URL` accordingly.
 - `extension-run` shades packages under `keycloakjar.*` to avoid classpath conflicts in Camunda Run.
 
+## Fork-specific: multi-tenancy
+
+This fork adds tenant support not present in upstream. See **[doc/adr-multi-tenant.md](openmairie-docs/adr-multi-tenant.md)** for full design, HTTP contract, code map, and known issues.
+
+Key facts for working in this fork:
+- `referentialManagerUrl` is **mandatory** — plugin fails to start without it.
+- `memberOfTenant()` on user/group queries is **no longer unsupported** — it routes to the Referential Manager.
+- All test `camunda.*.cfg.xml` files must include `referentialManagerUrl` (already done for existing tests; add it when creating new test configs).
+- There is **no automated PR/push CI** in this fork — run `docker compose up -d && mvn -B clean install` locally before pushing.
+
 ## CI
 
-- `build.yml`: `mvn -B clean install com.mycila:license-maven-plugin:check` with a Keycloak service container.
-- `deploy.yml`: publishes SNAPSHOT on merge to `master`, release on GitHub release publish. Requires Nexus and Sonatype Central secrets + GPG key.
+- `on-release.yml`: publishes to GitHub Packages on GitHub Release publication using `secrets.DG_PAT`, Java 21. **No automated PR/push CI exists in this fork.**
 - Dependency updates: managed by Renovate (`config:recommended`).

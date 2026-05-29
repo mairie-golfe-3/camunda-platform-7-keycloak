@@ -47,7 +47,7 @@
 
 		<!-- Keycloak Identity Prover Plugin  -->
 		<dependency>
-			<groupId>org.camunda.bpm.extension</groupId>
+			<groupId>com.openmairie.extension</groupId>
 			<artifactId>camunda-platform-7-keycloak</artifactId>
 		</dependency>
 

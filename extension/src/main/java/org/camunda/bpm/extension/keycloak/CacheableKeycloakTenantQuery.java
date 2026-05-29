@@ -54,16 +54,17 @@ public class CacheableKeycloakTenantQuery {
         if (this == o) return true;
         if (!(o instanceof CacheableKeycloakTenantQuery)) return false;
         CacheableKeycloakTenantQuery that = (CacheableKeycloakTenantQuery) o;
-        return id.equals(that.id) &&
+        return Objects.equals(id, that.id) &&
                 Arrays.equals(ids, that.ids) &&
-                name.equals(that.name) &&
-                nameLike.equals(that.nameLike) &&
-                userId.equals(that.userId);
+                Objects.equals(name, that.name) &&
+                Objects.equals(nameLike, that.nameLike) &&
+                Objects.equals(userId, that.userId) &&
+                Objects.equals(groupId, that.groupId);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(id, name, nameLike);
+        int result = Objects.hash(id, name, nameLike, userId, groupId);
         result = 31 * result + Arrays.hashCode(ids);
         return result;
     }

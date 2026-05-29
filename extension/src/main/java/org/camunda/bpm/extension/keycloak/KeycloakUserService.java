@@ -213,22 +213,15 @@ public class KeycloakUserService extends KeycloakServiceBase {
 		List<User> userList = new ArrayList<>();
 
 		try {
-			// get members of this group
-			ResponseEntity<String> response = null;
+			String tenant = query.getTenantId();
 
-			if (StringUtils.hasLength(query.getId())) {
-				response = requestUserById(query.getId());
-			} else if (query.getIds() != null && query.getIds().length == 1) {
-				response = requestUserById(query.getIds()[0]);
-			} else {
-				// Create user search filter
-				String tenant = query.getTenantId();
+			// Always query RM by tenant; post-processing handles id/ids filtering
+			ResponseEntity<String> response = restTemplate.exchange(
+					keycloakConfiguration.referentialManagerUrl + "/users?tenant=" + tenant, HttpMethod.GET, String.class);
 
-				response = restTemplate.exchange(keycloakConfiguration.referentialManagerUrl + "/users?tenant=" + tenant, HttpMethod.GET, String.class);
-			}
 			if (!response.getStatusCode().equals(HttpStatus.OK)) {
 				throw new IdentityProviderException(
-						"Unable to read users from " + keycloakConfiguration.getKeycloakAdminUrl()
+						"Unable to read users from " + keycloakConfiguration.getReferentialManagerUrl()
 								+ ": HTTP status code " + response.getStatusCodeValue());
 			}
 
@@ -248,7 +241,7 @@ public class KeycloakUserService extends KeycloakServiceBase {
 			}
 
 		} catch (RestClientException | JsonException rce) {
-			throw new IdentityProviderException("Unable to query users", rce);
+			throw new IdentityProviderException("Unable to query users by tenant", rce);
 		}
 
 		return userList;

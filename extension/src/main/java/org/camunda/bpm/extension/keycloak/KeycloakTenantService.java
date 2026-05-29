@@ -54,7 +54,7 @@ public class KeycloakTenantService extends KeycloakServiceBase {
             );
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new IdentityProviderException("Unable to fetch tenants from "
-                        + keycloakConfiguration.getKeycloakAdminUrl() + "for user " + userId +
+                        + keycloakConfiguration.getReferentialManagerUrl() + " for user " + userId +
                         ". HTTP Status code: " + response.getStatusCode());
             }
 
@@ -85,7 +85,7 @@ public class KeycloakTenantService extends KeycloakServiceBase {
             );
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new IdentityProviderException("Unable to fetch tenants from "
-                        + keycloakConfiguration.getKeycloakAdminUrl() +
+                        + keycloakConfiguration.getReferentialManagerUrl() +
                         ". HTTP Status code: " + response.getStatusCode());
             }
 
@@ -100,7 +100,7 @@ public class KeycloakTenantService extends KeycloakServiceBase {
             }
             throw hcee;
         } catch (Exception e) {
-            throw new IdentityProviderException("Error while fetching tenants for user ");
+            throw new IdentityProviderException("Error while fetching tenants", e);
         }
         return tenants;
     }
